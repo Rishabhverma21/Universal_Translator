@@ -98,26 +98,52 @@
 
 <!-- SPEAK SCRIPT -->
 <script>
-function speakInput() {
-    let text = document.getElementById("inputText").value;
+let voices = [];
+
+// load voices (fix delay issue)
+function loadVoices() {
+    voices = speechSynthesis.getVoices();
+}
+speechSynthesis.onvoiceschanged = loadVoices;
+
+function speak(text, langCode) {
     if (!text.trim()) {
-        alert("Enter text first!");
+        alert("Text is empty!");
         return;
     }
+
+    window.speechSynthesis.cancel(); // stop previous speech
+
     let speech = new SpeechSynthesisUtterance(text);
-    speech.lang = "{{ src }}";
+
+    // 🔥 faster + smoother
+    speech.rate = 1.05;
+    speech.pitch = 1;
+
+    // 🔥 better voice selection
+    let selectedVoice = voices.find(v =>
+        v.lang.toLowerCase().includes(langCode)
+    );
+
+    if (selectedVoice) {
+        speech.voice = selectedVoice;
+    } else {
+        speech.lang = langCode;
+    }
+
     window.speechSynthesis.speak(speech);
 }
 
+// INPUT
+function speakInput() {
+    let text = document.getElementById("inputText").value;
+    speak(text, "{{ src }}");
+}
+
+// OUTPUT
 function speakOutput() {
     let text = document.getElementById("outputText").value;
-    if (!text.trim()) {
-        alert("Translate something first!");
-        return;
-    }
-    let speech = new SpeechSynthesisUtterance(text);
-    speech.lang = "{{ dest }}";
-    window.speechSynthesis.speak(speech);
+    speak(text, "{{ dest }}");
 }
 </script>
 
